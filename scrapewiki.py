@@ -39,7 +39,18 @@ for a in soup.findAll('div', attrs={'class':'mw-parser-output'}):
         description+=a.get_text()
         break
 
-try:
+print(soup.find('td', attrs={'class':'infobox-image'}))
+        
+if soup.find('td', attrs={'class':'thumbinner', 'style':'width:262px;'}) != None:
+    for a in soup.findAll('div', attrs={'class':'thumbinner', 'style':'width:262px;'}):
+        image=a.find('img')
+        image=image['src'][2:]
+        print(image)
+        break
+        
+    imagesList.append(image)
+    
+elif soup.find('td', attrs={'class':'infobox-image'}) != None:
     for a in soup.findAll('td', attrs={'class':'infobox-image'}):
         image=a.find('img')
         image=image['src'][2:]
@@ -48,14 +59,8 @@ try:
 
     imagesList.append(image)
 
-except:
-    for a in soup.findAll('div', attrs={'class':'thumbinner', 'style':'width:262px;'}):
-        image=a.find('img')
-        image=image['src'][2:]
-        print(image)
-        break
-        
-    imagesList.append(image)
+else:
+    imageBackup = Image.open('wikilogo.png')
 
 imageLink = 'http://' + image
 imageAsFile = Image.open(requests.get(imageLink, stream=True).raw)
