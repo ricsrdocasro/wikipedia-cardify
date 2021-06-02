@@ -45,7 +45,8 @@ for a in soup.findAll('p', attrs={'class':'coordinates'}):
     a.decompose()
     
 
-for a in str(range(1, 100)):
+for a in range(1, 100):
+    a=str(a)
     for a in soup.findAll('img', attrs={'width':a, 'height':a}):
         a.decompose()
     
