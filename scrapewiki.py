@@ -9,6 +9,7 @@ import html.parser
 import re
 from PIL import Image, ImageDraw, ImageFont
 import requests
+from contextlib import suppress
 
 driver = webdriver.Chrome(executable_path='C:\Python39\Scripts\chromedriver')
 
@@ -17,7 +18,17 @@ descriptionList=[] #List to store price of the product
 categoryList=[]
 imagesList=[] #List to store rating of the product
 
-link = input("Insira o link da wikipédia: \n")
+option = int(input("1-página aleatória\n2-link\n"))
+
+if option == 1:
+    link = "https://pt.wikipedia.org/wiki/Especial:Aleat%C3%B3ria"
+elif option == 2:
+    link = input("Insira o link da wikipédia: \n")
+else:
+    print("opção inválida!")
+    raise Err
+    
+    
 if "https://" in link:
     lang=link[8:10]
     print(lang)
@@ -31,10 +42,24 @@ content = driver.page_source
 soup = BeautifulSoup(content, 'html.parser')
 
 for a in soup.findAll('p', attrs={'class':'coordinates'}):
-    a.decompose
+    a.decompose()
+    
+
+for a in str(range(1, 100)):
+    for a in soup.findAll('img', attrs={'width':a, 'height':a}):
+        a.decompose()
+    
+for a in soup.findAll('table', attrs={'class':'noprint'}):
+    a.decompose()
 
 name = soup.find('h1', attrs={'id':'firstHeading'})
 name = name.text
+
+for a in soup.findAll('div', attrs={'id':'mw-normal-catlinks'}):
+    for b in a.findAll('li'):
+        category = b.find('a').get_text()
+        
+print(category)
 
 for a in soup.findAll('div', attrs={'class':'mw-parser-output'}):
         description=''
@@ -43,38 +68,37 @@ for a in soup.findAll('div', attrs={'class':'mw-parser-output'}):
         break
 
 print(soup.find('td', attrs={'class':'infobox-image'}))
-        
-if soup.find('td', attrs={'class':'infobox-image'}) != None:
-     for a in soup.findAll('td', attrs={'class':'infobox-image'}):
-        image=a.find('img')
-        image=image['src'][2:]
-        print(image)
-        break
-    
-elif soup.find('div', attrs={'class':'thumbinner', 'style':'width:262px;'}) != None:
-    for a in soup.findAll('div', attrs={'class':'thumbinner', 'style':'width:262px;'}):
-        image=a.find('img')
-        image=image['src'][2:]
-        print(image)
-        break
+      
+with suppress(AttributeError):
+    if soup.find('td', attrs={'class':'infobox-image'}) != None:
+         for a in soup.findAll('td', attrs={'class':'infobox-image'}):
+            image=a.find('img')
+            image=image['src'][2:]
+            print(image)
 
-elif soup.find('table', attrs={'class':'infobox_v2'}).find('img') != None:
-    for a in soup.findAll('table', attrs={'class':'infobox'}):
-        image=a.find('img')
-        image=image['src'][2:]
-        print(image)
-        break
-        
-elif soup.find('table', attrs={'class':'toccolours'}) != None:
-    for a in soup.findAll('table', attrs={'class':'toccolours'}):
-        image=a.find('img')
-        image=image['src'][2:]
-        print(image)
-        break
+    elif soup.find('div', attrs={'class':'thumbinner', 'style':'width:262px;'}) != None:
+        for a in soup.findAll('div', attrs={'class':'thumbinner', 'style':'width:262px;'}):
+            image=a.find('img')
+            image=image['src'][2:]
+            print(image)
 
 
-else:
-    imageAsFile = Image.open('wikilogo.png')
+    elif soup.find('table', attrs={'class':'infobox_v2'}).find('img') != None:
+        for a in soup.findAll('table', attrs={'class':'infobox'}):
+            image=a.find('img')
+            image=image['src'][2:]
+            print(image)
+
+
+    elif soup.find('table', attrs={'class':'toccolours'}) != None:
+        for a in soup.findAll('table', attrs={'class':'toccolours'}):
+            image=a.find('img')
+            image=image['src'][2:]
+            print(image)
+
+
+    else:
+        imageAsFile = Image.open('wikilogo.png')
 
 #driver.find_element(By.XPATH, "//table[@class='infobox']/tbody/tr[1]/td/a/img")
 ##########################################################
@@ -82,7 +106,6 @@ else:
 try:
     imageLink = 'http://' + image
     imageAsFile = Image.open(requests.get(imageLink, stream=True).raw)
-    imageAsFile.save('wiki.png')
     
 except:
     pass
@@ -115,6 +138,8 @@ descriptionFont = ImageFont.truetype(r'C:/Windows/Fonts/Arial.ttf', 27)
 reducedNameFont = ImageFont.truetype(r'C:/Windows/Fonts/Arial.ttf', 60)
 propsFont = ImageFont.truetype(r'C:/Windows/Fonts/Arial.ttf', 40)
 
+W = 1090
+
 if '.' in viewsTotal:
     viewsTotal = viewsTotal.split('.')[0] + viewsTotal.split('.')[1]
 
@@ -142,21 +167,16 @@ back_im = baseImage.copy()
 back_im.paste(imgResized, (275, 217))
 im = ImageDraw.Draw(back_im)
 
-y = 50
+y = 80
 
-if 0 <= len(name) <= 20:
-    lines = text_wrap(name, nameFont, 900)
+
+
+lines = text_wrap(name, nameFont, 1090)
     
-    for line in lines:
-        im.text((325, y), name, (0,0,0), font=nameFont)
-        y += 75
-        
-else:
-    lines = text_wrap(name, reducedNameFont, 900)
-    
-    for line in lines:
-        im.text((325, y), name, (0,0,0), font=reducedNameFont)
-        y += 60
+for line in lines:
+    w, h = im.textsize(line, font=nameFont)
+    im.text(((W-w)/2, y), line, (0,0,0), font=nameFont)
+    y += 60
     
     
 lines = text_wrap(croppedDescription, descriptionFont, 900)
@@ -167,9 +187,13 @@ for line in lines:
     im.text((100, y), line, (0,0,0), font=descriptionFont)
     y += 27
     
+w, h = im.textsize(category, font=propsFont)
+im.text(((W-w)/2, 1400), category, (0,0,0), font=propsFont)    
     
-im.text((100, y+50), "Visualizações totais: " + viewsTotal, (0,0,0), font=propsFont)
-im.text((100, y+100), "Visualizações por dia: " + viewsPerDay, (0,0,0), font=propsFont) 
+im.text((100, y+50), "Acessos totais: " + viewsTotal, (0,0,0), font=propsFont)
+im.text((100, y+100), "Acessos por dia: " + viewsPerDay, (0,0,0), font=propsFont) 
 
 back_im.show()
-back_im.save('fullcard.jpg')
+back_im.save('fullcard.png')
+imageLink = ""
+imageAsFile = ""
