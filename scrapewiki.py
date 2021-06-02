@@ -52,6 +52,12 @@ for a in range(1, 100):
     
 for a in soup.findAll('table', attrs={'class':'noprint'}):
     a.decompose()
+    
+for a in soup.findAll('p', attrs={'class':'mw-empty-elt'}):
+    a.decompose()
+
+for a in soup.findAll('table', attrs={'class':'geography'}):
+    a.decompose()    
 
 for a in soup.findAll('p', attrs={'class':'mw-empty-elt'}):
     a.decompose()
