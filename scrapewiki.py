@@ -13,10 +13,10 @@ from contextlib import suppress
 
 driver = webdriver.Chrome(executable_path='C:\Python39\Scripts\chromedriver')
 
-namesList=[] #List to store name of the product
-descriptionList=[] #List to store price of the product
+namesList=[]
+descriptionList=[]
 categoryList=[]
-imagesList=[] #List to store rating of the product
+imagesList=[]
 
 option = int(input("1-página aleatória\n2-link\n"))
 
@@ -45,11 +45,18 @@ for a in soup.findAll('p', attrs={'class':'coordinates'}):
     a.decompose()
     
 
-for a in str(range(1, 100)):
+for a in range(1, 100):
+    a=str(a)
     for a in soup.findAll('img', attrs={'width':a, 'height':a}):
         a.decompose()
     
 for a in soup.findAll('table', attrs={'class':'noprint'}):
+    a.decompose()
+
+for a in soup.findAll('p', attrs={'class':'mw-empty-elt'}):
+    a.decompose()
+
+for a in soup.findAll('table', attrs={'class':'geography'}):
     a.decompose()
 
 name = soup.find('h1', attrs={'id':'firstHeading'})
@@ -129,6 +136,30 @@ viewsPerDay = views[1]
 viewsTotal = re.sub(r"[\n\t\s]*", "", viewsTotal)
 viewsPerDay = re.sub(r"[\n\t\s]*", "", viewsPerDay)
 
+driver.get('https://%s.wikipedia.org/w/index.php?title=%s&dir=prev&limit=500&action=history' %(lang, name.replace(" ", "_")))
+
+content = driver.page_source
+soup = BeautifulSoup(content, 'html.parser')
+count=0
+
+for a in soup.findAll("a", attrs={"class": "mw-changeslist-date"}):
+    count+=1
+    date = a.get_text() 
+    
+print(date)
+    
+if lang == "pt":
+    date = date.split(" ")[2:]
+    
+else:
+    date = date.split(" ")[1:]
+ 
+print(date)   
+
+date = " ".join(date)
+    
+
+
 driver.quit()
 
 croppedDescription = description.split('. ')[0]
@@ -192,6 +223,8 @@ im.text(((W-w)/2, 1400), category, (0,0,0), font=propsFont)
     
 im.text((100, y+50), "Acessos totais: " + viewsTotal, (0,0,0), font=propsFont)
 im.text((100, y+100), "Acessos por dia: " + viewsPerDay, (0,0,0), font=propsFont) 
+im.text((100, y+150), "Data de criação: " + date, (0,0,0), font=propsFont) 
+im.text((100, y+200), "Quantidade de edições: " + str(count), (0,0,0), font=propsFont) 
 
 back_im.show()
 back_im.save('fullcard.png')
