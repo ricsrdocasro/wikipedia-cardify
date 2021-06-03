@@ -10,13 +10,10 @@ import re
 from PIL import Image, ImageDraw, ImageFont
 import requests
 from contextlib import suppress
+from google_trans_new import google_translator
 
+translator = google_translator()
 driver = webdriver.Chrome(executable_path='C:\Python39\Scripts\chromedriver')
-
-namesList=[]
-descriptionList=[]
-categoryList=[]
-imagesList=[]
 
 option = int(input("1-página aleatória\n2-link\n"))
 
@@ -52,17 +49,8 @@ for a in range(1, 100):
     
 for a in soup.findAll('table', attrs={'class':'noprint'}):
     a.decompose()
-    
-for a in soup.findAll('p', attrs={'class':'mw-empty-elt'}):
-    a.decompose()
-
-for a in soup.findAll('table', attrs={'class':'geography'}):
-    a.decompose()    
 
 for a in soup.findAll('p', attrs={'class':'mw-empty-elt'}):
-    a.decompose()
-
-for a in soup.findAll('table', attrs={'class':'geography'}):
     a.decompose()
 
 name = soup.find('h1', attrs={'id':'firstHeading'})
@@ -71,16 +59,12 @@ name = name.text
 for a in soup.findAll('div', attrs={'id':'mw-normal-catlinks'}):
     for b in a.findAll('li'):
         category = b.find('a').get_text()
-        
-print(category)
 
 for a in soup.findAll('div', attrs={'class':'mw-parser-output'}):
         description=''
         a = a.find('p')
         description+=a.get_text()
         break
-
-print(soup.find('td', attrs={'class':'infobox-image'}))
       
 with suppress(AttributeError):
     if soup.find('td', attrs={'class':'infobox-image'}) != None:
@@ -108,7 +92,12 @@ with suppress(AttributeError):
             image=a.find('img')
             image=image['src'][2:]
             print(image)
-
+    
+    elif soup.find('td', attrs={'colspan':'2'}).find('img') != None:
+        for a in soup.findAll('td', attrs={'colspan':'2'}):
+                    image=a.find('img')
+                    image=image['src'][2:]
+                    print(image)
 
     else:
         imageAsFile = Image.open('wikilogo.png')
@@ -158,9 +147,7 @@ if lang == "pt":
     date = date.split(" ")[2:]
     
 else:
-    date = date.split(" ")[1:]
- 
-print(date)   
+    date = date.split(" ")[1:] 
 
 date = " ".join(date)
     
@@ -206,8 +193,6 @@ im = ImageDraw.Draw(back_im)
 
 y = 80
 
-
-
 lines = text_wrap(name, nameFont, 1090)
     
 for line in lines:
@@ -226,13 +211,25 @@ for line in lines:
     
 w, h = im.textsize(category, font=propsFont)
 im.text(((W-w)/2, 1400), category, (0,0,0), font=propsFont)    
+
+msgViews = "Number of accesses"
+msgViewsPerDay = "Accesses per day"
+msgDate = "Creation date"
+msgCount = "Number of edits"
+
+if lang == "en":
+    pass
+
+else:
+    msgViews = translator.translate(msgViews, lang_src='en', lang_tgt=lang)[:-1]
+    msgViewsPerDay = translator.translate(msgViewsPerDay, lang_src='en', lang_tgt=lang)[:-1]
+    msgDate = translator.translate(msgDate, lang_src='en', lang_tgt=lang)[:-1]
+    msgCount = translator.translate(msgCount, lang_src='en', lang_tgt=lang)[:-1]
     
-im.text((100, y+50), "Acessos totais: " + viewsTotal, (0,0,0), font=propsFont)
-im.text((100, y+100), "Acessos por dia: " + viewsPerDay, (0,0,0), font=propsFont) 
-im.text((100, y+150), "Data de criação: " + date, (0,0,0), font=propsFont) 
-im.text((100, y+200), "Quantidade de edições: " + str(count), (0,0,0), font=propsFont) 
+im.text((100, y+50), msgViews + ": " + viewsTotal, (0,0,0), font=propsFont)
+im.text((100, y+100), msgViewsPerDay + ": " + viewsPerDay, (0,0,0), font=propsFont) 
+im.text((100, y+150), msgDate + ": " + date, (0,0,0), font=propsFont) 
+im.text((100, y+200), msgCount + ": " + str(count), (0,0,0), font=propsFont) 
 
 back_im.show()
 back_im.save('fullcard.png')
-imageLink = ""
-imageAsFile = ""
